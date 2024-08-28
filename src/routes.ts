@@ -26,14 +26,14 @@ router.post("/auth/login", async (req, res) => {
         const decodedRefreshToken = jwt.decode(refresh_token);
         const decodedInfoToken = jwt.decode(info_token);
 
-        const currentDate = Math.floor(Date.now()); 
+        const currentDate = Date.now(); 
 
-
-        const expiresAccessToken = typeof decodedAccessToken === 'object' && decodedAccessToken?.exp ? new Date((currentDate + decodedAccessToken.exp)) : undefined;
-        const expiresRefreshToken = typeof decodedRefreshToken === 'object' && decodedRefreshToken?.exp ? new Date((currentDate + decodedRefreshToken.exp)): undefined;
-        res.cookie('access_token', access_token, { httpOnly: true, expires: expiresAccessToken });
-        res.cookie('refresh_token', refresh_token, { httpOnly: true, expires: expiresRefreshToken });
-        res.cookie('info_token', info_token, { httpOnly: true, expires: expiresRefreshToken  });
+        // Тут непонятно ещё что делать с timezone
+        const maxAgeAccessToken = typeof decodedAccessToken === 'object' && decodedAccessToken?.exp && decodedAccessToken?.iat ?  (decodedAccessToken?.exp - decodedAccessToken?.iat) * 1000 : undefined;
+        const maxAgeRefreshToken = typeof decodedRefreshToken === 'object' && decodedRefreshToken?.exp && decodedRefreshToken?.iat ? (decodedRefreshToken?.exp - decodedRefreshToken?.iat) * 1000: undefined;
+        res.cookie('access_token', access_token, { httpOnly: true, maxAge: maxAgeAccessToken });
+        res.cookie('refresh_token', refresh_token, { httpOnly: true, maxAge: maxAgeRefreshToken });
+        res.cookie('info_token', info_token, { httpOnly: true, maxAge: maxAgeRefreshToken  });
 
         res.json(decodedInfoToken)
       } catch (error: AxiosError | any) {
