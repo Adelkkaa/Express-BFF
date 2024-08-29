@@ -137,7 +137,13 @@ router.post("/auth/logout", async (req, res) => {
 });
 
 router.get("/auth/info", (req, res) => {
-  res.status(204).send();
+  const info_token = req.cookies.info_token || "";
+  const decodedInfoToken = jwt.decode(info_token) as IInfoToken | null;
+  if (!decodedInfoToken) {
+    res.status(401).send();
+    return;
+  }
+  res.json(decodedInfoToken);
 });
 
 export default router;
